@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const exphbs = require('express-handlebars');
 const methodOverride = require('method-override');
@@ -25,36 +26,37 @@ require('./config/passport')(passport);
 
 // Connecting to MongoDB...
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/student-mgmt-sys', {
-    useNewUrlParser: true
-}).then(() => console.log('Connected to MongoDB Server...')).catch(err => console.error('Error occured connecting to MongoDB...', err));
-
-
+mongoose
+  .connect(process.env.MONGODB_URL, {
+    useNewUrlParser: true,
+  })
+  .then(() => console.log('Connected to MongoDB Server...'))
+  .catch((err) => console.error('Error occured connecting to MongoDB...', err));
 
 // Load Helpers
 const {
-    paginate,
-    select,
-    if_eq,
-    select_course
+  paginate,
+  select,
+  if_eq,
+  select_course,
 } = require('./helpers/customHelpers');
 
-const {
-    ensureAuthenticated,
-    isLoggedIn
-} = require('./helpers/auth');
+const { ensureAuthenticated, isLoggedIn } = require('./helpers/auth');
 
 // Express Handlebars Middleware.
 
-app.engine('handlebars', exphbs({
+app.engine(
+  'handlebars',
+  exphbs({
     defaultLayout: 'main',
     helpers: {
-        paginate: paginate,
-        select: select,
-        if_eq: if_eq,
-        select_course: select_course
-    }
-}));
+      paginate: paginate,
+      select: select,
+      if_eq: if_eq,
+      select_course: select_course,
+    },
+  })
+);
 
 app.set('view engine', 'handlebars');
 
@@ -65,9 +67,11 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(breadcrumb());
 
 // Body Parser Middleware
-app.use(bodyParser.urlencoded({
-    extended: false
-}));
+app.use(
+  bodyParser.urlencoded({
+    extended: false,
+  })
+);
 
 app.use(bodyParser.json());
 
@@ -75,12 +79,14 @@ app.use(bodyParser.json());
 app.use(methodOverride('_method'));
 
 // Express Session
-app.set('trust proxy', 1) // trust first proxy
-app.use(session({
+app.set('trust proxy', 1); // trust first proxy
+app.use(
+  session({
     secret: 'secret',
     resave: true,
-    saveUninitialized: true
-}));
+    saveUninitialized: true,
+  })
+);
 
 // Passport Middleware.
 app.use(passport.initialize());
@@ -90,40 +96,40 @@ app.use(flash());
 
 // Global Variables
 app.use(function (req, res, next) {
-    res.locals.success_msg = req.flash('success_msg');
-    res.locals.error_msg = req.flash('error_msg');
-    res.locals.error = req.flash('error');
-    res.locals.success = req.flash('success');
-    res.locals.user = req.user || null;
-    next();
+  res.locals.success_msg = req.flash('success_msg');
+  res.locals.error_msg = req.flash('error_msg');
+  res.locals.error = req.flash('error');
+  res.locals.success = req.flash('success');
+  res.locals.user = req.user || null;
+  next();
 });
 
 // Home Route
 app.get('/', [isLoggedIn], (req, res) => {
-    res.render('home', {
-        title: 'Welcome',
-        breadcrumbs: false,
-        layout: 'home'
-    });
+  res.render('home', {
+    title: 'Welcome',
+    breadcrumbs: false,
+    layout: 'home',
+  });
 });
 
 // Dashboard Route
 app.get('/dashboard', [ensureAuthenticated], (req, res) => {
-    //console.log(req.originalUrl);
-    res.render('dashboard', {
-        title: 'Dashboard',
-        breadcrumbs: true
-    });
+  //console.log(req.originalUrl);
+  res.render('dashboard', {
+    title: 'Dashboard',
+    breadcrumbs: true,
+  });
 });
 
 app.get('/api', (req, res) => {
-    res.render('api');
-})
+  res.render('api');
+});
 
 app.get('/errors', (req, res) => {
-    res.render('errors', {
-        title: '404 - Page Not Found.'
-    });
+  res.render('errors', {
+    title: '404 - Page Not Found.',
+  });
 });
 
 // Use Routes
