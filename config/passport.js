@@ -14,33 +14,32 @@ module.exports = function (passport) {
         // Match User
         User.findOne({
           email: email,
-        }).then((user) => {
-          // if (!user) {
-          //     return done(null, false, {
-          //         message: 'User does not exist\'s'
-          //     });
-          // }
-
-          // if (user.request == false) {
-          //     return done(null, false, {
-          //         message: 'Your registration request has\'nt been approved yet'
-          //     });
-          // }
-
-          bcrypt.compare(password, user.password, (err, isMatch) => {
-            if (err) throw err;
-
-            if (isMatch) {
-              return done(null, user, {
-                message: 'Welcome Back, ' + user.name,
-              });
-            } else {
+        })
+          .then((user) => {
+            if (!user) {
               return done(null, false, {
-                message: 'Incorrect Password',
+                message: "User does not exist's",
               });
             }
-          });
-        });
+            if (user.request === false) {
+              return done(null, false, {
+                message: "Your registration request has'nt been approved yet",
+              });
+            }
+            bcrypt.compare(password, user.password, (err, isMatch) => {
+              if (err) throw err;
+              if (isMatch) {
+                return done(null, user, {
+                  message: 'Welcome Back, ' + user.name,
+                });
+              } else {
+                return done(null, false, {
+                  message: 'Incorrect Password',
+                });
+              }
+            });
+          })
+          .catch((err) => console.log(err));
       }
     )
   );
